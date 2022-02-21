@@ -14,18 +14,20 @@
 
 **/
 
-rule integrityOfDeposit(uint256 amount) {
+rule integrityOfDeposit(address vault, address user, address from, uint256 amount) {
 	// The env type represents the EVM parameters passed in every 
 	//   call (msg.*, tx.*, block.* variables in solidity).
 	env e; 
+
+	uint256 epochId = currentEpoch(e);
 	
 	// Save the funds before a deposit.
 	// The environment is passed as the first argument.
-	uint256 fundsBefore = getFunds(e, e.msg.sender);
+	uint256 fundsBefore = shares(e, epochId, vault, user);
 	
-	deposit(e, amount);
+	notifyTransfer(e, from, user, amount);
 	
-	uint256 fundsAfter = getFunds(e, e.msg.sender);
+	uint256 fundsAfter = shares(e, epochId, vault, user);
 	
 	// Verify that the funds of msg.sender is the sum of her funds before and the amount deposited.  
 	assert ( fundsBefore + amount == fundsAfter, "Deposit did not increase the funds as expected" );
